@@ -1,1 +1,129 @@
-student
+student# -------------------------------------------
+# Analyze Student Marks Data – Python Script
+# -------------------------------------------
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -----------------------------
+# 1. Load Dataset
+# -----------------------------
+df = pd.read_csv("student_marks.csv")   # Update filename if needed
+
+print("\n===== FIRST 5 ROWS OF DATA =====")
+print(df.head())
+
+print("\n===== DATA INFO =====")
+print(df.info())
+
+print("\n===== SUMMARY STATISTICS =====")
+print(df.describe())
+
+
+# -----------------------------
+# 2. Handle Missing Values
+# -----------------------------
+print("\n===== MISSING VALUES =====")
+print(df.isnull().sum())
+
+# Replace missing marks with column mean
+df.fillna(df.mean(numeric_only=True), inplace=True)
+
+
+# -----------------------------
+# 3. Subject-wise Analysis
+# -----------------------------
+subjects = ["Python", "SQL", "PowerBI"]
+
+print("\n===== SUBJECT-WISE AVERAGE =====")
+print(df[subjects].mean())
+
+print("\n===== SUBJECT-WISE MAXIMUM =====")
+print(df[subjects].max())
+
+print("\n===== SUBJECT-WISE MINIMUM =====")
+print(df[subjects].min())
+
+print("\n===== SUBJECT-WISE STANDARD DEVIATION =====")
+print(df[subjects].std())
+
+
+# -----------------------------
+# 4. Add Total, Percentage, Grade
+# -----------------------------
+df["Total"] = df[subjects].sum(axis=1)
+df["Percentage"] = df["Total"] / (len(subjects) * 100) * 100
+
+def assign_grade(p):
+    if p >= 85:
+        return "A"
+    elif p >= 70:
+        return "B"
+    elif p >= 55:
+        return "C"
+    else:
+        return "D"
+
+df["Grade"] = df["Percentage"].apply(assign_grade)
+
+print("\n===== UPDATED DATA WITH TOTAL, % & GRADE =====")
+print(df.head())
+
+
+# -----------------------------
+# 5. Filters / Conditions
+# -----------------------------
+
+# Top 5 students
+top_students = df.sort_values("Total", ascending=False).head(5)
+print("\n===== TOP 5 STUDENTS =====")
+print(top_students)
+
+# Students who scored above 85 in Python
+high_python = df[df["Python"] > 85]
+print("\n===== STUDENTS WITH PYTHON > 85 =====")
+print(high_python)
+
+# Students who scored below 40 in any subject
+weak_students = df[(df["Python"] < 40) | (df["SQL"] < 40) | (df["PowerBI"] < 40)]
+print("\n===== STUDENTS SCORING BELOW 40 IN ANY SUBJECT =====")
+print(weak_students)
+
+
+# -----------------------------
+# 6. Visualizations
+# -----------------------------
+
+# Bar chart: Student vs Total
+plt.figure(figsize=(12,5))
+plt.bar(df["Student"], df["Total"])
+plt.xlabel("Students")
+plt.ylabel("Total Marks")
+plt.title("Total Marks of Students")
+plt.xticks(rotation=90)
+plt.tight_layout()
+plt.show()
+
+# Subject-wise averages – line chart
+plt.figure(figsize=(7,5))
+plt.plot(subjects, df[subjects].mean())
+plt.title("Subject-wise Average Marks")
+plt.xlabel("Subjects")
+plt.ylabel("Average")
+plt.grid(True)
+plt.show()
+
+# Grade distribution – pie chart
+plt.figure(figsize=(6,6))
+df["Grade"].value_counts().plot.pie(autopct="%1.1f%%", shadow=True)
+plt.title("Grade Distribution")
+plt.ylabel("")
+plt.show()
+
+
+# -----------------------------
+# 7. Save Output
+# -----------------------------
+df.to_csv("student_marks_analysis_output.csv", index=False)
+print("\n✓ Analysis Completed & Output File Saved!")
